@@ -52,4 +52,35 @@ public class MedicamentDao {
         ConnexionMySql.fermerConnexionBd();
         return lesMedicaments;
     }
+    
+    /**
+     * Ajoute un médicament dans la table MEDICAMENT.
+     * @param unMedicament le médicament à ajouter
+     * @return 1 si l'ajout a réussi, 0 sinon
+     */
+    public static int creer(Medicament unMedicament) {
+        String requete = "insert into MEDICAMENT values ("
+                + echapper(unMedicament.getDepotLegal()) + ", "
+                + echapper(unMedicament.getNomCommercial()) + ", "
+                + echapper(unMedicament.getComposition()) + ", "
+                + echapper(unMedicament.getEffets()) + ", "
+                + echapper(unMedicament.getContreIndication()) + ", "
+                + unMedicament.getPrixEchantillon() + ", "
+                + echapper(unMedicament.getCodeFamille()) + ", "
+                + echapper(unMedicament.getLibelleFamille()) + ")";
+        int resultat = ConnexionMySql.execReqMaj(requete);
+        ConnexionMySql.fermerConnexionBd();
+        return resultat;
+    }
+
+    /**
+     * Prépare un texte pour une requête SQL : NULL s'il est vide,
+     * sinon entre apostrophes, avec les apostrophes et les \ doublés.
+     */
+    private static String echapper(String texte) {
+        if (texte == null || texte.trim().isEmpty()) {
+            return "NULL";
+        }
+        return "'" + texte.trim().replace("\\", "\\\\").replace("'", "''") + "'";
+    }
 }
