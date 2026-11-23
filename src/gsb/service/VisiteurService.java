@@ -141,4 +141,13 @@ public class VisiteurService {
             throw new Exception(nomChamp + " fait " + max + " caractères au maximum.");
         }
     }
+    
+    /**
+     * @param codePostal un code postal
+     * @return la ville correspondante, ou "" si le code est inconnu
+     */
+    public static String villeDuCodePostal(String codePostal) {
+        Localite l = (codePostal == null) ? null : LocaliteDao.rechercher(codePostal.trim());
+        return (l == null) ? "" : l.getVille();
+    }
 }
