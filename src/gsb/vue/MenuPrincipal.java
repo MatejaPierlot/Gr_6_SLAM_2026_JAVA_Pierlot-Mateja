@@ -95,6 +95,15 @@ public class MenuPrincipal extends JFrame implements ActionListener {
 			} else if (ChoixOption.equals("Liste Medecins")) {
 				ouvrirFenetre(new JIFMedecinListeDic(this));
 			}
+			
+			else if (ChoixOption.equals("Consultation Medicament")) {
+			    try {
+			        ouvrirFenetre(new JIFMedicamentFiche(
+			                gsb.service.MedicamentService.rechercherMedicament("ADIMOL9")));
+			    } catch (Exception e) {
+			        javax.swing.JOptionPane.showMessageDialog(this, e.getMessage());
+			    }
+			}
 
 		}
 
