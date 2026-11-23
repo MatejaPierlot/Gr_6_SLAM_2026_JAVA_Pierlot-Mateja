@@ -11,6 +11,8 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import gsb.modele.Medicament;
+import gsb.modele.dao.StockDao;
 
 /**
  * Contrôles et règles de gestion des visites.
@@ -99,5 +101,84 @@ public class VisiteService {
         c.set(Calendar.SECOND, 0);
         c.set(Calendar.MILLISECOND, 0);
         return c.getTime();
+    }
+    
+    /** Nombre maximum de caractères du commentaire (colonne varchar(100)). */
+    public static final int COMMENTAIRE_MAX = 100;
+
+    /**
+     * Enregistre une visite effectuée : commentaire et jusqu'à 2 médicaments offerts,
+     * puis retire les échantillons du stock du visiteur.
+     * Un dépôt légal vide veut dire « pas de médicament ».
+     * @throws Exception si une règle n'est pas respectée ou si une mise à jour échoue
+     */
+    public static void effectuerVisite(String reference, String commentaire,
+            String depot1, String quantite1, String depot2, String quantite2) throws Exception {
+
+        // 1. La visite doit exister et ne pas être déjà effectuée
+        Visite laVisite = rechercherVisite(reference);
+        if (laVisite.getCommentaire() != null && !laVisite.getCommentaire().trim().isEmpty()) {
+            throw new Exception("La visite " + laVisite.getReference() + " a déjà été effectuée.");
+        }
+
+        // 2. Le commentaire est obligatoire
+        commentaire = commentaire == null ? "" : commentaire.trim();
+        if (commentaire.isEmpty()) {
+            throw new Exception("Le commentaire est obligatoire.");
+        }
+        if (commentaire.length() > COMMENTAIRE_MAX) {
+            throw new Exception("Le commentaire fait " + COMMENTAIRE_MAX + " caractères au maximum.");
+        }
+
+        // 3. Les médicaments offerts (facultatifs)
+        String matricule = laVisite.getUnVisiteur().getMatricule();
+        Medicament m1 = null, m2 = null;
+        int q1 = 0, q2 = 0;
+        if (depot1 != null && !depot1.trim().isEmpty()) {
+            m1 = MedicamentService.rechercherMedicament(depot1);
+            q1 = controlerQuantite(quantite1, "1", matricule, m1);
+        }
+        if (depot2 != null && !depot2.trim().isEmpty()) {
+            m2 = MedicamentService.rechercherMedicament(depot2);
+            if (m1 != null && m1.getDepotLegal().equals(m2.getDepotLegal())) {
+                throw new Exception("Le même médicament ne peut pas être offert deux fois : regroupez la quantité.");
+            }
+            q2 = controlerQuantite(quantite2, "2", matricule, m2);
+        }
+
+        // 4. Tout est contrôlé : on écrit
+        laVisite.setCommentaire(commentaire);
+        laVisite.setMedicamentOffert1(m1);
+        laVisite.setQuantiteOfferte1(q1);
+        laVisite.setMedicamentOffert2(m2);
+        laVisite.setQuantiteOfferte2(q2);
+        if (VisiteDao.modifier(laVisite) != 1) {
+            throw new Exception("La mise à jour de la visite a échoué.");
+        }
+        if (m1 != null && StockDao.retirerQuantite(matricule, m1.getDepotLegal(), q1) != 1) {
+            throw new Exception("Le stock de " + m1.getNomCommercial() + " n'a pas pu être mis à jour.");
+        }
+        if (m2 != null && StockDao.retirerQuantite(matricule, m2.getDepotLegal(), q2) != 1) {
+            throw new Exception("Le stock de " + m2.getNomCommercial() + " n'a pas pu être mis à jour.");
+        }
+    }
+
+    /** Contrôle une quantité offerte : entier > 0 et pas plus que le stock du visiteur. */
+    private static int controlerQuantite(String quantite, String numero, String matricule, Medicament m) throws Exception {
+        int q;
+        try {
+            q = Integer.parseInt(quantite == null ? "" : quantite.trim());
+        } catch (NumberFormatException e) {
+            throw new Exception("La quantité du médicament " + numero + " doit être un nombre entier.");
+        }
+        if (q <= 0) {
+            throw new Exception("La quantité du médicament " + numero + " doit être supérieure à 0.");
+        }
+        int enStock = StockDao.quantiteEnStock(matricule, m.getDepotLegal());
+        if (q > enStock) {
+            throw new Exception("Stock insuffisant pour " + m.getNomCommercial()
+                    + " : " + enStock + " en stock, " + q + " demandé(s).");
+        }
+        return q;
     }
 }

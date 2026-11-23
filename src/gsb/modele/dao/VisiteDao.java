@@ -107,4 +107,23 @@ public class VisiteDao {
         ConnexionMySql.fermerConnexionBd();
         return resultat;
     }
+    
+    /**
+     * Enregistre le commentaire et les médicaments offerts d'une visite.
+     * @return 1 si la mise à jour a réussi, 0 sinon
+     */
+    public static int modifier(Visite uneVisite) {
+        String med1 = uneVisite.getMedicamentOffert1() == null ? null : uneVisite.getMedicamentOffert1().getDepotLegal();
+        String med2 = uneVisite.getMedicamentOffert2() == null ? null : uneVisite.getMedicamentOffert2().getDepotLegal();
+        String requete = "update VISITE set"
+                + " COMMENTAIRE=" + ConnexionMySql.echapper(uneVisite.getCommentaire())
+                + ", MED_OFFERT_1=" + ConnexionMySql.echapper(med1)
+                + ", QUANTITE_MED_1=" + (med1 == null ? "NULL" : String.valueOf(uneVisite.getQuantiteOfferte1()))
+                + ", MED_OFFERT_2=" + ConnexionMySql.echapper(med2)
+                + ", QUANTITE_MED_2=" + (med2 == null ? "NULL" : String.valueOf(uneVisite.getQuantiteOfferte2()))
+                + " where REFERENCE=" + ConnexionMySql.echapper(uneVisite.getReference());
+        int resultat = ConnexionMySql.execReqMaj(requete);
+        ConnexionMySql.fermerConnexionBd();
+        return resultat;
+    }
 }

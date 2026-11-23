@@ -56,4 +56,37 @@ public class StockDao {
         }
         return resultat;
     }
+    
+    /**
+     * @return la quantité en stock d'un médicament pour un visiteur (0 s'il n'en a pas)
+     */
+    public static int quantiteEnStock(String matricule, String depotLegal) {
+        int quantite = 0;
+        ResultSet req = ConnexionMySql.execReqSelection(
+                "select STOCK from STOCK where MATRICULE=" + ConnexionMySql.echapper(matricule)
+                + " and MED_DEPOTLEGAL=" + ConnexionMySql.echapper(depotLegal));
+        try {
+            if (req.next()) {
+                quantite = req.getInt(1);
+            }
+        } catch (Exception e) {
+            System.out.println("Erreur StockDao.quantiteEnStock : " + e.getMessage());
+        }
+        ConnexionMySql.fermerConnexionBd();
+        return quantite;
+    }
+
+    /**
+     * Retire une quantité du stock, seulement si le stock est suffisant.
+     * @return 1 si le retrait a été fait, 0 sinon
+     */
+    public static int retirerQuantite(String matricule, String depotLegal, int quantite) {
+        int resultat = ConnexionMySql.execReqMaj(
+                "update STOCK set STOCK = STOCK - " + quantite
+                + " where MATRICULE=" + ConnexionMySql.echapper(matricule)
+                + " and MED_DEPOTLEGAL=" + ConnexionMySql.echapper(depotLegal)
+                + " and STOCK >= " + quantite);
+        ConnexionMySql.fermerConnexionBd();
+        return resultat;
+    }
 }
