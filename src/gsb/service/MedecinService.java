@@ -24,4 +24,11 @@ public class MedecinService {
 		return unMedecin;
 	}
 	
+	/**
+	 * @return tous les médecins
+	 */
+	public static java.util.ArrayList<Medecin> retournerLesMedecins() {
+		return MedecinDao.retournerCollectionDesMedecins();
+	}
+	
 }
