@@ -93,4 +93,21 @@ public class VisiteurDao {
         ConnexionMySql.fermerConnexionBd();
         return resultat;
     }
+    
+    /**
+     * @param login un login
+     * @return true si un visiteur utilise déjà ce login
+     */
+    public static boolean loginExiste(String login) {
+        boolean existe = false;
+        ResultSet req = ConnexionMySql.execReqSelection(
+                "select MATRICULE from VISITEUR where LOGIN=" + ConnexionMySql.echapper(login));
+        try {
+            existe = req.next();
+        } catch (Exception e) {
+            System.out.println("Erreur VisiteurDao.loginExiste : " + e.getMessage());
+        }
+        ConnexionMySql.fermerConnexionBd();
+        return existe;
+    }
 }
