@@ -2,7 +2,7 @@ package gsb.service;
 
 import gsb.modele.Medicament;
 import gsb.modele.dao.MedicamentDao;
-
+import java.util.TreeMap;
 import java.util.ArrayList;
 
 /**
@@ -79,5 +79,15 @@ public class MedicamentService {
         if (texte != null && texte.trim().length() > max) {
             throw new Exception(nomChamp + " fait " + max + " caractères au maximum.");
         }
+    }
+    
+    /** @return les familles, triées par code (code -> libellé) */
+    public static TreeMap<String, String> retournerLesFamilles() {
+        return MedicamentDao.retournerLesFamilles();
+    }
+
+    /** @return les médicaments de la famille choisie */
+    public static ArrayList<Medicament> retournerMedicamentsDeLaFamille(String codeFamille) {
+        return MedicamentDao.retournerMedicamentsDeLaFamille(codeFamille);
     }
 }
