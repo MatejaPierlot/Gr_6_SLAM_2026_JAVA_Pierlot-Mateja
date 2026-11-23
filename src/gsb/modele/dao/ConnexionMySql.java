@@ -77,5 +77,17 @@ public class ConnexionMySql { // DAO = Data Access Object
 		try{cnx.close();}
 		catch(Exception e) {  System.out.println("Erreur sur fermeture connexion");  } 
 	}
-
+	
+	/**
+	 * Prépare un texte pour une requête SQL : NULL s'il est vide,
+	 * sinon entre apostrophes, avec les apostrophes et les \ doublés.
+	 * @param texte le texte à protéger
+	 * @return le texte prêt à être placé dans la requête
+	 */
+	public static String echapper(String texte) {
+		if (texte == null || texte.trim().isEmpty()) {
+			return "NULL";
+		}
+		return "'" + texte.trim().replace("\\", "\\\\").replace("'", "''") + "'";
+	}
 }

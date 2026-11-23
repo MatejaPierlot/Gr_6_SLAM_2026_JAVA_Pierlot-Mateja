@@ -79,10 +79,7 @@ public class MedicamentDao {
      * sinon entre apostrophes, avec les apostrophes et les \ doublés.
      */
     private static String echapper(String texte) {
-        if (texte == null || texte.trim().isEmpty()) {
-            return "NULL";
-        }
-        return "'" + texte.trim().replace("\\", "\\\\").replace("'", "''") + "'";
+        return ConnexionMySql.echapper(texte);
     }
     
     /**
